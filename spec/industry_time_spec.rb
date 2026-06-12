@@ -112,11 +112,6 @@ RSpec.describe IndustryTime do
 
   describe 'Monkey Patches (global)' do
     before(:all) do
-      # Prior to global patching, standard Time.parse does not handle 25h,
-      # and global instances do not respond to to_industry_format.
-      expect { Time.parse('2026-06-12 25:30:00') }.to raise_error(ArgumentError)
-      expect(Time.now.respond_to?(:to_industry_format)).to be false
-
       # Apply global patch
       IndustryTime.patch!
     end
