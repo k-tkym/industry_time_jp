@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name          = 'industry_time'
   spec.version       = IndustryTime::VERSION
   spec.authors       = ['Kazuki Takayama']
-  spec.email         = ['kazuki@example.com']
+  spec.email         = ['k-tkym@users.noreply.github.com']
 
   spec.summary       = 'Seamlessly handle Japanese industry time (25:00, 28:00) in Ruby.'
   spec.description   = 'Extends Time.parse and Time instances to handle and format 24+ hour times.'
@@ -14,7 +14,10 @@ Gem::Specification.new do |spec|
   spec.license       = 'MIT'
   spec.required_ruby_version = '>= 3.2.0'
 
-  spec.files         = Dir.glob('lib/**/*') + %w[README.md]
+  spec.metadata['source_code_uri'] = spec.homepage
+  spec.metadata['changelog_uri']   = "#{spec.homepage}/blob/main/CHANGELOG.md"
+
+  spec.files         = Dir.glob('lib/**/*') + %w[README.md README.ja.md]
   spec.require_paths = ['lib']
 
   spec.add_development_dependency 'activesupport'
