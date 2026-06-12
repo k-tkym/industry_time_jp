@@ -4,4 +4,4 @@ source 'https://rubygems.org'
 
 gemspec
 
-gem 'parallel', '< 2.1.0'
+gem 'parallel', '< 2.0.0'
