@@ -1,5 +1,7 @@
 # IndustryTime
 
+English | [日本語](README.ja.md)
+
 `industry_time` is a Ruby library/gem that extends the standard `Time` class to seamlessly parse and format Japanese "industry time" (24+ hour format, such as 25:00, 28:00).
 
 It can be used either as a scoped **Refinement** (recommended for safety) or a global **Monkey Patch**.
