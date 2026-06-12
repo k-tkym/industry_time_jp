@@ -6,12 +6,12 @@ require 'spec_helper'
 module RefinementTester
   using IndustryTime
 
-  def self.parse(str, *args)
-    Time.parse(str, *args)
+  def self.parse(str, *)
+    Time.parse(str, *)
   end
 
-  def self.to_industry_format(time, *args, **kwargs)
-    time.to_industry_format(*args, **kwargs)
+  def self.to_industry_format(time, *, **)
+    time.to_industry_format(*, **)
   end
 
   def self.respond_to_to_industry_format?(time)
