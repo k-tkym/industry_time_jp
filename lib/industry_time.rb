@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require "time"
-require_relative "industry_time/version"
+require 'time'
+require_relative 'industry_time/version'
 
 module IndustryTime
   class << self
@@ -27,7 +27,7 @@ module IndustryTime
       new_hour = hour % 24
 
       new_str = str.dup
-      new_str[match.begin(1)...match.end(1)] = sprintf("%02d", new_hour)
+      new_str[match.begin(1)...match.end(1)] = format('%02d', new_hour)
 
       [new_str, days_to_add]
     end
@@ -35,11 +35,11 @@ module IndustryTime
     # Formats a Time object into an industry time format.
     def format_time(time, format, threshold_hour)
       if time.hour < threshold_hour
-        shifted_time = time - 86400
+        shifted_time = time - 86_400
         industry_hour = time.hour + 24
 
-        h_val = sprintf("%02d", industry_hour)
-        k_val = sprintf("%2d", industry_hour)
+        h_val = format('%02d', industry_hour)
+        k_val = format('%2d', industry_hour)
 
         modified_format = replace_hour_placeholders(format, h_val, k_val)
         shifted_time.strftime(modified_format)
@@ -51,6 +51,7 @@ module IndustryTime
     # Apply global monkey patches to Time class.
     def patch!
       return if @patched
+
       @patched = true
 
       ::Time.singleton_class.prepend(TimeClassExtension)
@@ -61,12 +62,12 @@ module IndustryTime
 
     # Safely replaces %H and %k in a strftime format string, respecting double percent (%%) escapes.
     def replace_hour_placeholders(format_str, h_val, k_val)
-      parts = format_str.split("%%", -1)
+      parts = format_str.split('%%', -1)
       parts.map! do |part|
         part.gsub(/(?<!%)%([-_0^#\d]*)H/) { h_val }
             .gsub(/(?<!%)%([-_0^#\d]*)k/) { k_val }
       end
-      parts.join("%%")
+      parts.join('%%')
     end
   end
 
@@ -75,40 +76,40 @@ module IndustryTime
 
   # Extension modules for monkey patches
   module TimeClassExtension
-    def parse(str, *args, &block)
+    def parse(str, ...)
       processed = IndustryTime.pre_process_parse(str)
       if processed
         new_str, days_to_add = processed
-        parsed = super(new_str, *args, &block)
-        parsed + (days_to_add * 86400)
+        parsed = super(new_str, ...)
+        parsed + (days_to_add * 86_400)
       else
-        super(str, *args, &block)
+        super
       end
     end
   end
 
   module TimeExtension
-    def to_industry_format(format = "%Y-%m-%d %H:%M:%S", threshold_hour: IndustryTime.threshold_hour)
+    def to_industry_format(format = '%Y-%m-%d %H:%M:%S', threshold_hour: IndustryTime.threshold_hour)
       IndustryTime.format_time(self, format, threshold_hour)
     end
   end
 
   # Refinements for scoping the changes
   refine ::Time.singleton_class do
-    def parse(str, *args, &block)
+    def parse(str, ...)
       processed = IndustryTime.pre_process_parse(str)
       if processed
         new_str, days_to_add = processed
-        parsed = super(new_str, *args, &block)
-        parsed + (days_to_add * 86400)
+        parsed = super(new_str, ...)
+        parsed + (days_to_add * 86_400)
       else
-        super(str, *args, &block)
+        super
       end
     end
   end
 
   refine ::Time do
-    def to_industry_format(format = "%Y-%m-%d %H:%M:%S", threshold_hour: IndustryTime.threshold_hour)
+    def to_industry_format(format = '%Y-%m-%d %H:%M:%S', threshold_hour: IndustryTime.threshold_hour)
       IndustryTime.format_time(self, format, threshold_hour)
     end
   end
