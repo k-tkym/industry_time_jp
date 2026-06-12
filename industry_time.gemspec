@@ -6,7 +6,7 @@ Gem::Specification.new do |spec|
   spec.name          = 'industry_time'
   spec.version       = IndustryTime::VERSION
   spec.authors       = ['Kazuki Takayama']
-  spec.email         = ['k-tkym@users.noreply.github.com']
+  spec.email         = ['23182248+k-tkym@users.noreply.github.com']
 
   spec.summary       = 'Seamlessly handle Japanese industry time (25:00, 28:00) in Ruby.'
   spec.description   = 'Extends Time.parse and Time instances to handle and format 24+ hour times.'
