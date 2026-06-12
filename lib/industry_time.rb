@@ -48,7 +48,7 @@ module IndustryTime
       end
     end
 
-    # Apply global monkey patches to Time class.
+    # Apply global monkey patches to Time and ActiveSupport classes.
     def patch!
       return if @patched
 
@@ -56,6 +56,13 @@ module IndustryTime
 
       ::Time.singleton_class.prepend(TimeClassExtension)
       ::Time.include(TimeExtension)
+
+      return unless defined?(::ActiveSupport)
+
+      ::ActiveSupport::TimeZone.prepend(ActiveSupportTimeZoneExtension) if defined?(::ActiveSupport::TimeZone)
+      return unless defined?(::ActiveSupport::TimeWithZone)
+
+      ::ActiveSupport::TimeWithZone.include(TimeExtension)
     end
 
     private
@@ -94,6 +101,19 @@ module IndustryTime
     end
   end
 
+  module ActiveSupportTimeZoneExtension
+    def parse(str, now = now())
+      processed = IndustryTime.pre_process_parse(str)
+      if processed
+        new_str, days_to_add = processed
+        parsed = super(new_str, now)
+        parsed ? parsed + (days_to_add * 86_400) : nil
+      else
+        super
+      end
+    end
+  end
+
   # Refinements for scoping the changes
   refine ::Time.singleton_class do
     def parse(str, ...)
@@ -114,3 +134,5 @@ module IndustryTime
     end
   end
 end
+
+require_relative 'industry_time/railtie' if defined?(Rails::Railtie)

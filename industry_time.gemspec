@@ -17,6 +17,8 @@ Gem::Specification.new do |spec|
   spec.files         = Dir.glob('lib/**/*') + %w[README.md]
   spec.require_paths = ['lib']
 
+  spec.add_development_dependency 'activesupport'
+  spec.add_development_dependency 'railties'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rubocop', '~> 1.0'
   spec.metadata['rubygems_mfa_required'] = 'true'
