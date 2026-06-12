@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'time'
+require 'date'
 require_relative 'industry_time/version'
 
 module IndustryTime
@@ -9,33 +10,49 @@ module IndustryTime
     # Default is 4 (meaning times from 00:00:00 to 03:59:59 will be formatted as 24:00:00 to 27:59:59).
     attr_accessor :threshold_hour
 
+    # Safely shifts a time object by a given number of days, respecting DST.
+    def shift_days(time, days)
+      return time if days.zero?
+
+      if defined?(::ActiveSupport::TimeWithZone) && time.is_a?(::ActiveSupport::TimeWithZone)
+        time + days.days
+      elsif defined?(::DateTime) && time.is_a?(::DateTime)
+        time + days
+      elsif time.utc? || time.zone.nil?
+        time + (days * 86_400)
+      else
+        d = time.to_date + days
+        ::Time.local(d.year, d.month, d.day, time.hour, time.min, time.sec + time.subsec)
+      end
+    end
+
     # Pre-processes a string to convert 24+ hours to standard hours and returns the number of days to add.
-    # Returns [modified_string, days_to_add] if a 24+ hour time was matched and modified.
-    # Returns nil if no modification is necessary.
+    # Replaces all occurrences using gsub.
     def pre_process_parse(str)
       return nil unless str.is_a?(String)
 
-      # Match the time component: hours (>=24), minutes, optional seconds/subseconds
-      # Prevent matching timezone offsets like +09:00 or -05:00
-      match = str.match(/(?<![-+\d])(\d{2,}):(\d{2})(?::(\d{2}))?(?:\.(\d+))?/)
-      return nil unless match
+      max_days_to_add = 0
+      modified = false
 
-      hour = match[1].to_i
-      return nil if hour < 24
+      new_str = str.gsub(/(?<![-+\d])(\d{2,}):(\d{2})(?::(\d{2}))?(?:\.(\d+))?/) do |match|
+        hour = ::Regexp.last_match(1).to_i
+        if hour >= 24
+          days = hour / 24
+          max_days_to_add = days if days > max_days_to_add
+          modified = true
+          format('%<hour>02d:%<rest>s', hour: hour % 24, rest: match.split(':', 2)[1])
+        else
+          match
+        end
+      end
 
-      days_to_add = hour / 24
-      new_hour = hour % 24
-
-      new_str = str.dup
-      new_str[match.begin(1)...match.end(1)] = format('%02d', new_hour)
-
-      [new_str, days_to_add]
+      modified ? [new_str, max_days_to_add] : nil
     end
 
     # Formats a Time object into an industry time format.
     def format_time(time, format, threshold_hour)
       if time.hour < threshold_hour
-        shifted_time = time - 86_400
+        shifted_time = shift_days(time, -1)
         industry_hour = time.hour + 24
 
         h_val = format('%02d', industry_hour)
@@ -48,7 +65,7 @@ module IndustryTime
       end
     end
 
-    # Apply global monkey patches to Time and ActiveSupport classes.
+    # Apply global monkey patches to Time, DateTime and ActiveSupport classes.
     def patch!
       return if @patched
 
@@ -56,6 +73,11 @@ module IndustryTime
 
       ::Time.singleton_class.prepend(TimeClassExtension)
       ::Time.include(TimeExtension)
+
+      if defined?(::DateTime)
+        ::DateTime.singleton_class.prepend(DateTimeClassExtension)
+        ::DateTime.include(TimeExtension)
+      end
 
       return unless defined?(::ActiveSupport)
 
@@ -88,7 +110,42 @@ module IndustryTime
       if processed
         new_str, days_to_add = processed
         parsed = super(new_str, ...)
-        parsed + (days_to_add * 86_400)
+        IndustryTime.shift_days(parsed, days_to_add)
+      else
+        super
+      end
+    end
+
+    def strptime(str, format, ...)
+      processed = IndustryTime.pre_process_parse(str)
+      if processed
+        new_str, days_to_add = processed
+        parsed = super(new_str, format, ...)
+        IndustryTime.shift_days(parsed, days_to_add)
+      else
+        super
+      end
+    end
+  end
+
+  module DateTimeClassExtension
+    def parse(str, ...)
+      processed = IndustryTime.pre_process_parse(str)
+      if processed
+        new_str, days_to_add = processed
+        parsed = super(new_str, ...)
+        IndustryTime.shift_days(parsed, days_to_add)
+      else
+        super
+      end
+    end
+
+    def strptime(str, format, ...)
+      processed = IndustryTime.pre_process_parse(str)
+      if processed
+        new_str, days_to_add = processed
+        parsed = super(new_str, format, ...)
+        IndustryTime.shift_days(parsed, days_to_add)
       else
         super
       end
@@ -102,12 +159,12 @@ module IndustryTime
   end
 
   module ActiveSupportTimeZoneExtension
-    def parse(str, now = now())
+    def parse(str, ...)
       processed = IndustryTime.pre_process_parse(str)
       if processed
         new_str, days_to_add = processed
-        parsed = super(new_str, now)
-        parsed ? parsed + (days_to_add * 86_400) : nil
+        parsed = super(new_str, ...)
+        parsed ? IndustryTime.shift_days(parsed, days_to_add) : nil
       else
         super
       end
@@ -121,7 +178,18 @@ module IndustryTime
       if processed
         new_str, days_to_add = processed
         parsed = super(new_str, ...)
-        parsed + (days_to_add * 86_400)
+        IndustryTime.shift_days(parsed, days_to_add)
+      else
+        super
+      end
+    end
+
+    def strptime(str, format, ...)
+      processed = IndustryTime.pre_process_parse(str)
+      if processed
+        new_str, days_to_add = processed
+        parsed = super(new_str, format, ...)
+        IndustryTime.shift_days(parsed, days_to_add)
       else
         super
       end
@@ -131,6 +199,38 @@ module IndustryTime
   refine ::Time do
     def to_industry_format(format = '%Y-%m-%d %H:%M:%S', threshold_hour: IndustryTime.threshold_hour)
       IndustryTime.format_time(self, format, threshold_hour)
+    end
+  end
+
+  if defined?(::DateTime)
+    refine ::DateTime.singleton_class do
+      def parse(str, ...)
+        processed = IndustryTime.pre_process_parse(str)
+        if processed
+          new_str, days_to_add = processed
+          parsed = super(new_str, ...)
+          IndustryTime.shift_days(parsed, days_to_add)
+        else
+          super
+        end
+      end
+
+      def strptime(str, format, ...)
+        processed = IndustryTime.pre_process_parse(str)
+        if processed
+          new_str, days_to_add = processed
+          parsed = super(new_str, format, ...)
+          IndustryTime.shift_days(parsed, days_to_add)
+        else
+          super
+        end
+      end
+    end
+
+    refine ::DateTime do
+      def to_industry_format(format = '%Y-%m-%d %H:%M:%S', threshold_hour: IndustryTime.threshold_hour)
+        IndustryTime.format_time(self, format, threshold_hour)
+      end
     end
   end
 end
