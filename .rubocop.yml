@@ -9,19 +9,19 @@ Metrics/BlockLength:
     - '*.gemspec'
 
 Metrics/ModuleLength:
-  Enabled: false
+  Max: 150
 
 Metrics/MethodLength:
-  Enabled: false
+  Max: 20
 
 Metrics/AbcSize:
-  Enabled: false
+  Max: 25
 
 Metrics/CyclomaticComplexity:
-  Enabled: false
+  Max: 10
 
 Metrics/PerceivedComplexity:
-  Enabled: false
+  Max: 10
 
 Style/Documentation:
   Enabled: false
