@@ -78,6 +78,21 @@ IndustryTime.threshold_hour = 5 # 閾値を午前5:00に設定
 time.to_industry_format(threshold_hour: 2)
 ```
 
+## Rails (ActiveSupport) との連携
+
+このGemは Ruby on Rails にも自動で対応します！ `ActiveSupport` が読み込まれている場合、`industry_time` は自動的に `ActiveSupport::TimeZone` と `ActiveSupport::TimeWithZone` に対してもパッチを適用します。
+
+```ruby
+# Time.zone を使ったパースが可能です
+time = Time.zone.parse("2026-06-12 25:30:00")
+puts time # => Sat, 13 Jun 2026 01:30:00 JST +09:00
+
+# TimeWithZone オブジェクトのフォーマットも可能です
+puts time.to_industry_format # => "2026-06-12 25:30:00"
+```
+
+Rails環境で使用する場合、Railsアプリの起動時（Railtie経由）にグローバルパッチが全自動で適用されるため、手動で `IndustryTime.patch!` を呼び出す必要はありません。
+
 ## 開発手順 (Development)
 
 ローカル環境を汚さずに開発やテストを行うため、Docker環境が用意されています。

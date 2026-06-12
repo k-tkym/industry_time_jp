@@ -78,6 +78,21 @@ IndustryTime.threshold_hour = 5 # Set threshold to 5:00 AM
 time.to_industry_format(threshold_hour: 2)
 ```
 
+## Rails (ActiveSupport) Integration
+
+This gem automatically supports Ruby on Rails! If `ActiveSupport` is loaded, `industry_time` will automatically patch `ActiveSupport::TimeZone` and `ActiveSupport::TimeWithZone`.
+
+```ruby
+# You can parse times with Time.zone
+time = Time.zone.parse("2026-06-12 25:30:00")
+puts time # => Sat, 13 Jun 2026 01:30:00 JST +09:00
+
+# You can format TimeWithZone objects
+puts time.to_industry_format # => "2026-06-12 25:30:00"
+```
+
+If you are using Rails, the global patches are applied automatically when the Rails app boots via a Railtie. You do not need to manually call `IndustryTime.patch!`.
+
 ## Development
 
 A Docker environment is provided for easy development and testing without polluting your local Ruby environment.

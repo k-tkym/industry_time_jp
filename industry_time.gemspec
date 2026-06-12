@@ -12,11 +12,13 @@ Gem::Specification.new do |spec|
   spec.description   = 'Extends Time.parse and Time instances to handle and format 24+ hour times.'
   spec.homepage      = 'https://github.com/k-tkym/industry_time_jp'
   spec.license       = 'MIT'
-  spec.required_ruby_version = '>= 3.0.0'
+  spec.required_ruby_version = '>= 3.2.0'
 
   spec.files         = Dir.glob('lib/**/*') + %w[README.md]
   spec.require_paths = ['lib']
 
+  spec.add_development_dependency 'activesupport'
+  spec.add_development_dependency 'railties'
   spec.add_development_dependency 'rspec', '~> 3.0'
   spec.add_development_dependency 'rubocop', '~> 1.0'
   spec.metadata['rubygems_mfa_required'] = 'true'
