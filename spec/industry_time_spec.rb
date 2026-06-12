@@ -136,6 +136,27 @@ RSpec.describe IndustryTime do
       expect(time.min).to eq(15)
     end
 
+    it "parses 24+ hour designations with different formats including timezones" do
+      # With +0900 timezone
+      time1 = Time.parse("2026-06-12 25:30:00 +0900")
+      expect(time1.year).to eq(2026)
+      expect(time1.day).to eq(13)
+      expect(time1.hour).to eq(1)
+      expect(time1.utc_offset).to eq(9 * 3600)
+
+      # ISO8601-like with Z
+      time2 = Time.parse("2026-06-12T25:30:00Z")
+      expect(time2.day).to eq(13)
+      expect(time2.hour).to eq(1)
+      expect(time2.utc?).to be true
+
+      # RFC2822-like string
+      time3 = Time.parse("Fri, 12 Jun 2026 25:30:00 EST")
+      expect(time3.day).to eq(13)
+      expect(time3.hour).to eq(1)
+      expect(time3.utc_offset).to eq(-5 * 3600)
+    end
+
     it "respects global threshold_hour change" do
       old_threshold = IndustryTime.threshold_hour
       begin
