@@ -78,6 +78,27 @@ IndustryTime.threshold_hour = 5 # 閾値を午前5:00に設定
 time.to_industry_format(threshold_hour: 2)
 ```
 
+## 開発手順 (Development)
+
+ローカル環境を汚さずに開発やテストを行うため、Docker環境が用意されています。
+
+コンテナのビルドとインタラクティブシェルの起動：
+
+```bash
+docker compose build
+docker compose run --rm app bash
+```
+
+コンテナ内に入った後は、以下のコマンドでテストや静的解析を実行できます：
+
+```bash
+# RSpecテストの実行
+bundle exec rspec
+
+# RuboCop（Linter & Formatter）の実行
+bundle exec rubocop -A
+```
+
 ## ライセンス
 
 このGemは、[MITライセンス](https://opensource.org/licenses/MIT)の条件のもとでオープンソースとして利用可能です。
