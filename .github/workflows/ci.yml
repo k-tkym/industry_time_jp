@@ -17,7 +17,7 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{ matrix.ruby-version }}
-        bundler: latest
+        bundler: 2.5.23
         bundler-cache: true # runs 'bundle install' and caches installed gems automatically
     - name: Run tests
       run: bundle exec rspec
@@ -30,7 +30,7 @@ jobs:
       uses: ruby/setup-ruby@v1
       with:
         ruby-version: '3.3'
-        bundler: latest
+        bundler: 2.5.23
         bundler-cache: true
     - name: Run RuboCop
       run: bundle exec rubocop
