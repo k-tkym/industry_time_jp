@@ -78,6 +78,27 @@ IndustryTime.threshold_hour = 5 # Set threshold to 5:00 AM
 time.to_industry_format(threshold_hour: 2)
 ```
 
+## Development
+
+A Docker environment is provided for easy development and testing without polluting your local Ruby environment.
+
+To build and start the interactive shell:
+
+```bash
+docker compose build
+docker compose run --rm app bash
+```
+
+Once inside the container, you can run tests and linters:
+
+```bash
+# Run RSpec tests
+bundle exec rspec
+
+# Run RuboCop (Linter & Formatter)
+bundle exec rubocop -A
+```
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
