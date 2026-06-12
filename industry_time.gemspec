@@ -17,7 +17,7 @@ Gem::Specification.new do |spec|
   spec.metadata['source_code_uri'] = spec.homepage
   spec.metadata['changelog_uri']   = "#{spec.homepage}/blob/main/CHANGELOG.md"
 
-  spec.files         = Dir.glob('lib/**/*') + %w[README.md README.ja.md]
+  spec.files         = Dir.glob('lib/**/*') + %w[README.md README.ja.md CHANGELOG.md LICENSE.txt]
   spec.require_paths = ['lib']
 
   spec.add_development_dependency 'activesupport'
